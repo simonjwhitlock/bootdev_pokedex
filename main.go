@@ -93,7 +93,10 @@ func commandHelp(configuration *config) error {
 
 func commandMap(configuration *config) error {
 	fmt.Println("call:", configuration.Next)
-	resp := pokeapi.Call(configuration.Next)
+	resp, err := pokeapi.Call(configuration.Next)
+	if err != nil {
+		return err
+	}
 	fmt.Println(resp)
 	return nil
 }
