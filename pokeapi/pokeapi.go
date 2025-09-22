@@ -24,15 +24,15 @@ type (
 func call(url string) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("Error with PokeAPI call:", err)
+		return nil, fmt.Errorf("error with pokeapi call: %v", err)
 	}
 	body, err := io.ReadAll(res.Body)
 	res.Body.Close()
 	if res.StatusCode > 299 {
-		return nil, fmt.Errorf("PokeAPI call returned status:", res.StatusCode)
+		return nil, fmt.Errorf("pokeapi call returned status: %v", res.StatusCode)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error reading Body of response:", err)
+		return nil, fmt.Errorf("error reading Body of response: %v", err)
 	}
 	return body, nil
 }
@@ -44,5 +44,8 @@ func MapCall(url string) (MapResponse, error) {
 	}
 	var result MapResponse
 	err = json.Unmarshal(resp, &result)
+	if err != nil {
+		return MapResponse{}, fmt.Errorf("error unmarshaling json: %v", err)
+	}
 	return result, nil
 }
