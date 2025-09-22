@@ -16,6 +16,7 @@ type cliCommand struct {
 	callback    func(*config) error
 }
 
+// define sturcture of congfig
 type config struct {
 	Next     string
 	Previous string
@@ -41,6 +42,11 @@ func main() {
 			name:        "map",
 			description: "Displays 20 map locations from pokeapi.co - each call will display the next 20 from the previous call",
 			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays the preivous 20 map locations from pokeapi.co - each call will display the previous 20 from the previous call",
+			callback:    commandMapBack,
 		},
 	}
 	//define the next and previous call uri
@@ -92,11 +98,27 @@ func commandHelp(configuration *config) error {
 }
 
 func commandMap(configuration *config) error {
-	fmt.Println("call:", configuration.Next)
-	resp, err := pokeapi.Call(configuration.Next)
+	resp, err := pokeapi.MapCall(configuration.Next)
 	if err != nil {
 		return err
 	}
-	fmt.Println(resp)
+	configuration.Next = resp.Next
+	configuration.Previous = resp.Previous
+	for _, location := range resp.Results {
+		fmt.Println(location.Name)
+	}
+	return nil
+}
+
+func commandMapBack(configuration *config) error {
+	resp, err := pokeapi.MapCall(configuration.Previous)
+	if err != nil {
+		return err
+	}
+	configuration.Next = resp.Next
+	configuration.Previous = resp.Previous
+	for _, location := range resp.Results {
+		fmt.Println(location.Name)
+	}
 	return nil
 }
