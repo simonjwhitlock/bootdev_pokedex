@@ -1,8 +1,6 @@
 package main
 
-import {
-	"testing"
-}
+import "testing"
 
 func TestCleanInput(t *testing.T) {
 	cases := []struct {
@@ -17,6 +15,10 @@ func TestCleanInput(t *testing.T) {
 			input:    "  this  is  string  ",
 			expected: []string{"this", "is", "string"},
 		},
+		{
+			input:    "Charmander Bulbasaur PIKACHU",
+			expected: []string{"charmander", "bulbasaur", "pikachu"},
+		},
 	}
 
 	for _, c := range cases {
@@ -25,7 +27,8 @@ func TestCleanInput(t *testing.T) {
 			word := actual[i]
 			expectedWord := c.expected[i]
 			if word != expectedWord {
-				t.Errorf("word does not match expected: %s != %s",word, expectedWord)
+				t.Errorf("word does not match expected: %s != %s", word, expectedWord)
+				t.Fatalf("test failed")
 			}
 		}
 	}
