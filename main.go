@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/simonjwhitlock/bootdev_pokedex/pokeapi"
+	"github.com/simonjwhitlock/bootdev_pokedex/internal/pokeapi"
 )
 
 // define the type structure of the command map items
