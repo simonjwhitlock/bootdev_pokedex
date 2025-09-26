@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/simonjwhitlock/bootdev_pokedex/internal/pokeapi"
+	"github.com/simonjwhitlock/bootdev_pokedex/internal/pokecache"
 )
 
 // define the type structure of the command map items
@@ -18,15 +19,15 @@ type cliCommand struct {
 
 // define sturcture of congfig
 type config struct {
-	Next     string
-	Previous string
+	mapCurrentIndex int
+	mapCallCount    int
+	cache           *pokecache.Cache
 }
 
-// declare the command map
+// declare the command map (main func calls the getCommands func to fill in the global varable)
 var commands map[string]cliCommand
 
-func main() {
-	//fill in the command map
+func getCommands() {
 	commands = map[string]cliCommand{
 		"exit": {
 			name:        "exit",
@@ -49,11 +50,19 @@ func main() {
 			callback:    commandMapBack,
 		},
 	}
+}
+
+func main() {
+	//fill in the command map
+	getCommands()
+
 	//define the next and previous call uri
 	configuration := config{
-		Next:     "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20",
-		Previous: "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20",
+		mapCurrentIndex: 0,
+		mapCallCount:    20,
+		cache:           pokecache.NewCache(5 * time.Minute),
 	}
+
 	// create new io scanner for comand line
 	scanner := bufio.NewScanner(os.Stdin)
 	//print initail cli prompt
@@ -93,32 +102,6 @@ func commandHelp(configuration *config) error {
 	fmt.Println()
 	for _, value := range commands {
 		fmt.Printf("%v: %v\n", value.name, value.description)
-	}
-	return nil
-}
-
-func commandMap(configuration *config) error {
-	resp, err := pokeapi.MapCall(configuration.Next)
-	if err != nil {
-		return err
-	}
-	configuration.Next = resp.Next
-	configuration.Previous = resp.Previous
-	for _, location := range resp.Results {
-		fmt.Println(location.Name)
-	}
-	return nil
-}
-
-func commandMapBack(configuration *config) error {
-	resp, err := pokeapi.MapCall(configuration.Previous)
-	if err != nil {
-		return err
-	}
-	configuration.Next = resp.Next
-	configuration.Previous = resp.Previous
-	for _, location := range resp.Results {
-		fmt.Println(location.Name)
 	}
 	return nil
 }

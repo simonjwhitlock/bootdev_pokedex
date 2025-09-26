@@ -19,7 +19,9 @@ type (
 	}
 )
 
-func MapCall(url string) (MapResponse, error) {
+func MapCall(index, count int) (MapResponse, error) {
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/?offset=%v&limit=%v", index, count)
+
 	resp, err := call(url)
 	if err != nil {
 		return MapResponse{}, err
