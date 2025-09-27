@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/simonjwhitlock/bootdev_pokedex/internal/pokeapi"
 	"github.com/simonjwhitlock/bootdev_pokedex/internal/pokecache"
 )
 
@@ -22,7 +23,20 @@ type config struct {
 	mapCurrentIndex int
 	mapCallCount    int
 	cache           *pokecache.Cache
+	input           []string
+	catchRollMax    int
 }
+
+// declare and set global configuration
+var configuration = config{
+	mapCurrentIndex: 0,
+	mapCallCount:    20,
+	cache:           pokecache.NewCache(5 * time.Minute),
+	catchRollMax:    300,
+}
+
+// initalise pokedex map
+var pokedex = make(map[string]pokeapi.Pokemon)
 
 // declare the command map (main func calls the getCommands func to fill in the global varable)
 var commands map[string]cliCommand
@@ -49,6 +63,26 @@ func getCommands() {
 			description: "Displays the preivous 20 map locations from pokeapi.co - each call will display the previous 20 from the previous call",
 			callback:    commandMapBack,
 		},
+		"explore": {
+			name:        "explore",
+			description: "explores the aria and returns a list of found pokemon - takes an area from the map as the input",
+			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "thow pokeball at pokemon to attempt to catch them - takes an pokemon name as the input",
+			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "inspect the stats of a caught pokemon, use pokemon name as argument",
+			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "lists all caught pokemon",
+			callback:    commandPokedex,
+		},
 	}
 }
 
@@ -56,26 +90,19 @@ func main() {
 	//fill in the command map
 	getCommands()
 
-	//define the next and previous call uri
-	configuration := config{
-		mapCurrentIndex: 0,
-		mapCallCount:    20,
-		cache:           pokecache.NewCache(5 * time.Minute),
-	}
-
 	// create new io scanner for comand line
 	scanner := bufio.NewScanner(os.Stdin)
 	//print initail cli prompt
 	fmt.Print("Pokedex >")
 	//capture cli input and parse for commands, execute if first word in input is valid command
 	for scanner.Scan() {
-		input := cleanInput(scanner.Text())
-		function, ok := commands[input[0]]
+		configuration.input = cleanInput(scanner.Text())
+		function, ok := commands[configuration.input[0]]
 		if ok {
 			err := function.callback(&configuration)
 			if err != nil {
+				fmt.Println("last call returned error:")
 				fmt.Println(err)
-				commandExit(&configuration)
 			}
 		} else {
 			fmt.Println("Unknown command")

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/simonjwhitlock/bootdev_pokedex/internal/pokecache"
 )
 
-func call(url string) ([]byte, error) {
+func call(url string, cache *pokecache.Cache) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error with pokeapi call: %v", err)
@@ -19,5 +21,20 @@ func call(url string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading Body of response: %v", err)
 	}
+	cache.Add(url, body)
+	return body, nil
+}
+
+func get(url string, cache *pokecache.Cache) ([]byte, error) {
+	body, ok := cache.Get(url)
+
+	if !ok {
+		body, err := call(url, cache)
+		if err != nil {
+			return nil, err
+		}
+		return body, nil
+	}
+
 	return body, nil
 }
